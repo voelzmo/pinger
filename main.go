@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -49,7 +51,12 @@ func startHTTPServer() {
 func init() {
 	flag.IntVar(&interval, "interval", 10, "The interval between two pings in seconds")
 	flag.Var(&addressesToPing, "address", "The address which should be pinged. Format <IP>:<port>")
-	flag.IntVar(&listenPort, "listenPort", 8080, "The port to listen on")
+	portFromEnv := os.Getenv("PORT")
+	defaultPort := 8080
+	if portFromEnv != "" {
+		defaultPort, _ = strconv.Atoi(portFromEnv)
+	}
+	flag.IntVar(&listenPort, "listenPort", defaultPort, "The port to listen on")
 }
 
 func main() {
