@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -17,6 +18,8 @@ var (
 	interval        int
 	addressesToPing addressVar
 	listenPort      int
+	errorRate       float64
+	randomGenerator *rand.Rand
 )
 
 func (a *addressVar) String() string {
@@ -43,6 +46,11 @@ func pingAddress(address string) {
 
 func startHTTPServer() {
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		f := randomGenerator.Float64()
+		if f < errorRate {
+			http.Error(w, "no wai!", http.StatusTeapot)
+			return
+		}
 		json.NewEncoder(w).Encode("pong")
 	})
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", listenPort), nil))
@@ -51,6 +59,8 @@ func startHTTPServer() {
 func init() {
 	flag.IntVar(&interval, "interval", 10, "The interval between two pings in seconds")
 	flag.Var(&addressesToPing, "address", "The address which should be pinged. Format <IP>:<port>")
+	flag.Float64Var(&errorRate, "error-rate", 0.0, "error rate in percent")
+
 	portFromEnv := os.Getenv("PORT")
 	defaultPort := 8080
 	if portFromEnv != "" {
@@ -61,10 +71,9 @@ func init() {
 
 func main() {
 	flag.Parse()
-	log.Printf("found some flags: interval=%v, address=%s, listenPort=%v", interval, addressesToPing, listenPort)
+	randomGenerator = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	go startHTTPServer()
-
 	c := time.Tick(time.Duration(interval) * time.Second)
 	for range c {
 		for _, address := range addressesToPing {
