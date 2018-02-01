@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"github.com/facebookgo/pidfile"
 )
 
 type addressVar []string
@@ -20,6 +21,7 @@ var (
 	listenPort      int
 	errorRate       float64
 	randomGenerator *rand.Rand
+	pidFilePath string
 )
 
 func (a *addressVar) String() string {
@@ -60,6 +62,7 @@ func init() {
 	flag.IntVar(&interval, "interval", 10, "The interval between two pings in seconds")
 	flag.Var(&addressesToPing, "address", "The address which should be pinged. Format <IP>:<port>")
 	flag.Float64Var(&errorRate, "error-rate", 0.0, "error rate in percent")
+	flag.StringVar(&pidFilePath, "pidfile-path", "", "Path to write a PID file to")
 
 	portFromEnv := os.Getenv("PORT")
 	defaultPort := 8080
@@ -72,6 +75,14 @@ func init() {
 func main() {
 	flag.Parse()
 	randomGenerator = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	if pidFilePath != "" {
+		pidfile.SetPidfilePath(pidFilePath)
+		err := pidfile.Write()
+		if err != nil {
+			log.Fatalf("Couldn't write Pidfile at path %s: %s", pidFilePath, err)
+		}
+	}
 
 	go startHTTPServer()
 	c := time.Tick(time.Duration(interval) * time.Second)
