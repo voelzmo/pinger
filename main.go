@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/facebookgo/pidfile"
+	"github.com/voelzmo/pinger/graphite"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -19,12 +20,14 @@ import (
 type addressVar []string
 
 var (
-	config          *httpConfig = &httpConfig{}
-	interval        int
-	addressesToPing addressVar
-	errorRate       float64
-	randomGenerator *rand.Rand
-	pidFilePath     string
+	config           *httpConfig = &httpConfig{}
+	interval         int
+	addressesToPing  addressVar
+	listenPort       int
+	errorRate        float64
+	randomGenerator  *rand.Rand
+	pidFilePath      string
+	graphiteEndpoint string
 )
 
 type httpConfig struct {
@@ -88,7 +91,17 @@ func createClient() (*http.Client, error) {
 }
 
 func startHTTPServer() {
+	var pingMetric *graphite.Metric
+	if graphiteEndpoint != "" {
+		sender, err := graphite.NewGraphiteSender(graphiteEndpoint)
+		if err == nil {
+			pingMetric = graphite.NewMetric("CF.istio-ingress.pinger", 10.0, sender)
+		}
+	}
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		if pingMetric != nil {
+			pingMetric.Increment()
+		}
 		f := randomGenerator.Float64()
 		if f < errorRate {
 			http.Error(w, "no wai!", http.StatusTeapot)
@@ -117,6 +130,7 @@ func init() {
 	flag.StringVar(&config.certFile, "cert-path", "", "Path to certificate for https server")
 	flag.StringVar(&config.keyFile, "key-path", "", "Path to key for https server")
 	flag.StringVar(&config.caCertFile, "ca-cert-path", "", "Path to custom ca to trust")
+	flag.StringVar(&graphiteEndpoint, "graphite-endpoint", "", "Where to write metrics to, format is <host>:<port>")
 
 	portFromEnv := os.Getenv("PORT")
 	defaultPort := 8080
