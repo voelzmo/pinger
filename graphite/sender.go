@@ -10,20 +10,24 @@ const (
 	tcpTimeout = 30 * time.Second
 )
 
-type GraphiteSender struct {
+type Sender interface {
+	Send(metric string, value float64, when int64) error
+}
+
+type graphiteSender struct {
 	connection net.Conn
 }
 
-func NewGraphiteSender(endpoint string) (*GraphiteSender, error) {
+func NewGraphiteSender(endpoint string) (Sender, error) {
 	conn, err := net.Dial("tcp", endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	return &GraphiteSender{connection: conn}, nil
+	return &graphiteSender{connection: conn}, nil
 }
 
-func (gs *GraphiteSender) Send(metric string, value float64, when int64) error {
+func (gs *graphiteSender) Send(metric string, value float64, when int64) error {
 	err := gs.connection.SetWriteDeadline(time.Now().Add(tcpTimeout))
 	if err != nil {
 		return err
@@ -32,6 +36,6 @@ func (gs *GraphiteSender) Send(metric string, value float64, when int64) error {
 	return err
 }
 
-func (gs *GraphiteSender) Close() error {
+func (gs *graphiteSender) Close() error {
 	return gs.connection.Close()
 }

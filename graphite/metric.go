@@ -9,10 +9,10 @@ type Metric struct {
 	pingEvents  int32
 	metricPrefix string
 	sendInterval float64
-	sender       *GraphiteSender
+	sender       Sender
 }
 
-func NewMetric(metricPrefix string, sendInterval float64, sender *GraphiteSender) *Metric {
+func NewMetric(metricPrefix string, sendInterval float64, sender Sender) *Metric {
 	result := Metric{
 		metricPrefix: metricPrefix,
 		sendInterval: sendInterval,

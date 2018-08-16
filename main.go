@@ -28,6 +28,8 @@ var (
 	randomGenerator  *rand.Rand
 	pidFilePath      string
 	graphiteEndpoint string
+	metricsPrefix    string
+
 )
 
 type httpConfig struct {
@@ -95,7 +97,7 @@ func startHTTPServer() {
 	if graphiteEndpoint != "" {
 		sender, err := graphite.NewGraphiteSender(graphiteEndpoint)
 		if err == nil {
-			pingMetric = graphite.NewMetric("CF.istio-ingress.pinger", 10.0, sender)
+			pingMetric = graphite.NewMetric(metricsPrefix, 10.0, sender)
 		}
 	}
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
@@ -131,6 +133,7 @@ func init() {
 	flag.StringVar(&config.keyFile, "key-path", "", "Path to key for https server")
 	flag.StringVar(&config.caCertFile, "ca-cert-path", "", "Path to custom ca to trust")
 	flag.StringVar(&graphiteEndpoint, "graphite-endpoint", "", "Where to write metrics to, format is <host>:<port>")
+	flag.StringVar(&metricsPrefix, "metrics-prefix", "pinger", "Prefix for reporting metrics")
 
 	portFromEnv := os.Getenv("PORT")
 	defaultPort := 8080
