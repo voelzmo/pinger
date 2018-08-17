@@ -15,27 +15,28 @@ type Sender interface {
 }
 
 type graphiteSender struct {
-	connection net.Conn
+	endpoint string
 }
 
-func NewGraphiteSender(endpoint string) (Sender, error) {
-	conn, err := net.Dial("tcp", endpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	return &graphiteSender{connection: conn}, nil
+func NewGraphiteSender(endpoint string) Sender {
+	return &graphiteSender{endpoint}
 }
 
 func (gs *graphiteSender) Send(metric string, value float64, when int64) error {
-	err := gs.connection.SetWriteDeadline(time.Now().Add(tcpTimeout))
+	conn, err := net.Dial("tcp", gs.endpoint)
 	if err != nil {
 		return err
 	}
-	_, err = gs.connection.Write([]byte(fmt.Sprintf("%s %f %d\n", metric, value, when)))
-	return err
-}
 
-func (gs *graphiteSender) Close() error {
-	return gs.connection.Close()
+	defer func() {
+		conn.Close()
+	}()
+
+	err = conn.SetWriteDeadline(time.Now().Add(tcpTimeout))
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Write([]byte(fmt.Sprintf("%s %f %d\n", metric, value, when)))
+	return err
 }

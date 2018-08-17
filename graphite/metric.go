@@ -32,7 +32,8 @@ func (m *Metric) reportMetrics() {
 		for {
 			currentValue := m.pingEvents
 			if atomic.CompareAndSwapInt32(&m.pingEvents, currentValue, 0) {
-				m.sender.Send(m.metricPrefix + ".pingReceiveRate", float64(currentValue)/m.sendInterval.Seconds(), now.Unix())
+				rate := float64(currentValue) / m.sendInterval.Seconds()
+				_ = m.sender.Send(m.metricPrefix + ".pingReceiveRate", rate, now.Unix())
 				break
 			}
 		}
