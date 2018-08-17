@@ -97,7 +97,7 @@ func startHTTPServer() {
 	if graphiteEndpoint != "" {
 		sender, err := graphite.NewGraphiteSender(graphiteEndpoint)
 		if err == nil {
-			pingMetric = graphite.NewMetric(metricsPrefix, 10.0, sender)
+			pingMetric = graphite.NewMetric(metricsPrefix, 10.0 * time.Second, sender)
 		}
 	}
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {

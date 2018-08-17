@@ -27,13 +27,13 @@ func (s senderSpy) getSent() []event {
 
 func TestMetricSent(t *testing.T) {
      sender := senderSpy{}
-     metric := NewMetric("my.prefix", 1, &sender)
+     metric := NewMetric("my.prefix", 1 *time.Millisecond, &sender)
 
      metric.Increment()
      metric.Increment()
      metric.Increment()
 
-     time.Sleep(3 * time.Second)
+     time.Sleep(3 * time.Millisecond)
 
     events := sender.getSent()
 	count := len(events)
@@ -48,7 +48,7 @@ func TestMetricSent(t *testing.T) {
 		t.Errorf("Wrong metric received: %s", firstMetric.metric)
 	}
 
-	if firstMetric.value != 3.0  {
+	if firstMetric.value != 3000.0  {
 		t.Errorf("Wrong metric value received: %f", firstMetric.value)
 	}
 

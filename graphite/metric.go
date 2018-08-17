@@ -8,11 +8,11 @@ import (
 type Metric struct {
 	pingEvents  int32
 	metricPrefix string
-	sendInterval float64
+	sendInterval time.Duration
 	sender       Sender
 }
 
-func NewMetric(metricPrefix string, sendInterval float64, sender Sender) *Metric {
+func NewMetric(metricPrefix string, sendInterval time.Duration, sender Sender) *Metric {
 	result := Metric{
 		metricPrefix: metricPrefix,
 		sendInterval: sendInterval,
@@ -27,12 +27,12 @@ func (m *Metric) Increment() {
 }
 
 func (m *Metric) reportMetrics() {
-	ticker := time.Tick(time.Duration(m.sendInterval) * time.Second)
+	ticker := time.Tick(m.sendInterval)
 	for now := range ticker {
 		for {
 			currentValue := m.pingEvents
 			if atomic.CompareAndSwapInt32(&m.pingEvents, currentValue, 0) {
-				m.sender.Send(m.metricPrefix + ".pingReceiveRate", float64(currentValue)/m.sendInterval, now.Unix())
+				m.sender.Send(m.metricPrefix + ".pingReceiveRate", float64(currentValue)/m.sendInterval.Seconds(), now.Unix())
 				break
 			}
 		}
