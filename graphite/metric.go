@@ -3,6 +3,7 @@ package graphite
 import (
 	"time"
 	"sync/atomic"
+	"log"
 )
 
 type Metric struct {
@@ -33,7 +34,10 @@ func (m *Metric) reportMetrics() {
 			currentValue := m.pingEvents
 			if atomic.CompareAndSwapInt32(&m.pingEvents, currentValue, 0) {
 				rate := float64(currentValue) / m.sendInterval.Seconds()
-				_ = m.sender.Send(m.metricPrefix + ".pingReceiveRate", rate, now.Unix())
+				err := m.sender.Send(m.metricPrefix + ".pingReceiveRate", rate, now.Unix())
+				if nil != err {
+					log.Printf("Error while sending metric: %s", err.Error())
+				}
 				break
 			}
 		}
