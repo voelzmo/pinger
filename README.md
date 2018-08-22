@@ -4,4 +4,10 @@ Just an app that pings regularly pings other IP adresses. Responds to pings on `
 `pinger --listenPort <port> --interval <interval in seconds> --address <IP address 1>:<some port> [--address <IP address 2>:<some other port>]`
 
 ### Consumption
-find a boshrelease at https://github.com/voelzmo/pinger-app-release or just deploy the pinger on Cloud Foundry e.g. with the binary buildpack.
+* boshrelease: https://github.com/voelzmo/pinger-app-release
+* deploy ping-app on Cloud Foundry with the binary buildpack
+```
+GOOS=linux GOARCH=amd64 go build -o ping-app
+cf push ping-app -c './ping-app' -b https://github.com/cloudfoundry/binary-buildpack.git
+```
+
