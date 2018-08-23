@@ -5,8 +5,7 @@ ADD . .
 
 RUN GOOS=linux go build -tags netgo -o pinger
 
-FROM alpine
-RUN apk --no-cache add ca-certificates
+FROM scratch
 
 WORKDIR /app
 COPY --from=build-env /go/src/github.com/voelzmo/pinger/pinger /app/
