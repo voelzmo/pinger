@@ -95,6 +95,7 @@ func startHTTPServer() {
 			return
 		}
 		json.NewEncoder(w).Encode("pong")
+		log.Printf("Got pinged by %s, sent a 'pong'!", r.RemoteAddr)
 	})
 	log.Fatal(listenAndServe(config))
 }
