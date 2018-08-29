@@ -1,6 +1,7 @@
 package graphite
 
 import (
+	"code.cloudfoundry.org/clock"
 	"log"
 	"sync/atomic"
 	"time"
@@ -11,13 +12,15 @@ type Metric struct {
 	metricPrefix string
 	sendInterval time.Duration
 	sender       Sender
+	c            clock.Clock
 }
 
-func NewMetric(metricPrefix string, sendInterval time.Duration, sender Sender) *Metric {
+func NewMetric(metricPrefix string, sendInterval time.Duration, sender Sender, c clock.Clock) *Metric {
 	result := Metric{
 		metricPrefix: metricPrefix,
 		sendInterval: sendInterval,
 		sender:       sender,
+		c:            c,
 	}
 	go result.reportMetrics()
 	return &result
@@ -28,8 +31,8 @@ func (m *Metric) Increment() {
 }
 
 func (m *Metric) reportMetrics() {
-	ticker := time.Tick(m.sendInterval)
-	for now := range ticker {
+	ticker := m.c.NewTicker(m.sendInterval)
+	for now := range ticker.C() {
 		for {
 			currentValue := m.pingEvents
 			if atomic.CompareAndSwapInt32(&m.pingEvents, currentValue, 0) {

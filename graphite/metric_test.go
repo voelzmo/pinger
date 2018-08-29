@@ -1,6 +1,7 @@
 package graphite
 
 import (
+	"code.cloudfoundry.org/clock/fakeclock"
 	"testing"
 	"time"
 )
@@ -26,13 +27,17 @@ func (s senderSpy) getSent() []event {
 
 func TestMetricSent(t *testing.T) {
 	sender := senderSpy{}
-	metric := NewMetric("my.prefix", 1*time.Millisecond, &sender)
+	fakeClock := fakeclock.NewFakeClock(time.Now())
+	metric := NewMetric("my.prefix", 1*time.Millisecond, &sender, fakeClock)
 
 	metric.Increment()
 	metric.Increment()
 	metric.Increment()
 
-	time.Sleep(3 * time.Millisecond)
+	//fakeClock.Increment(3 * time.Millisecond)
+	//fakeClock.IncrementBySeconds(1)
+	fakeClock.WaitForWatcherAndIncrement(5 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	events := sender.getSent()
 	count := len(events)

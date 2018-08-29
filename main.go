@@ -1,6 +1,7 @@
 package main
 
 import (
+	"code.cloudfoundry.org/clock"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -95,7 +96,7 @@ func startHTTPServer() {
 	var pingMetric *graphite.Metric
 	if graphiteEndpoint != "" {
 		sender := graphite.NewGraphiteSender(graphiteEndpoint)
-		pingMetric = graphite.NewMetric(metricsPrefix, 10.0*time.Second, sender)
+		pingMetric = graphite.NewMetric(metricsPrefix, 10.0*time.Second, sender, clock.NewClock())
 	}
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		if pingMetric != nil {
