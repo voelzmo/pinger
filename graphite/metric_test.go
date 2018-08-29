@@ -34,16 +34,14 @@ func TestMetricSent(t *testing.T) {
 	metric.Increment()
 	metric.Increment()
 
-	//fakeClock.Increment(3 * time.Millisecond)
-	//fakeClock.IncrementBySeconds(1)
-	fakeClock.WaitForWatcherAndIncrement(5 * time.Millisecond)
-	time.Sleep(10 * time.Millisecond)
+	fakeClock.Increment(3 * time.Millisecond)
 
 	events := sender.getSent()
 	count := len(events)
 	expected := 2
 	if count < expected {
 		t.Errorf("Number of received events wrong, got: %d, want at least: %d.", len(events), expected)
+		return
 	}
 
 	firstMetric := events[0]
