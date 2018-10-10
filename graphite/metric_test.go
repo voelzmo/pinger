@@ -1,9 +1,10 @@
 package graphite
 
 import (
-	"code.cloudfoundry.org/clock/fakeclock"
 	"testing"
 	"time"
+
+	"code.cloudfoundry.org/clock/fakeclock"
 )
 
 type event struct {
@@ -34,7 +35,11 @@ func TestMetricSent(t *testing.T) {
 	metric.Increment()
 	metric.Increment()
 
-	fakeClock.Increment(3 * time.Millisecond)
+	fakeClock.WaitForWatcherAndIncrement(1 * time.Millisecond)
+	fakeClock.WaitForWatcherAndIncrement(1 * time.Millisecond)
+	for len(sender.getSent()) < 2 {
+		time.Sleep(1 * time.Millisecond)
+	}
 
 	events := sender.getSent()
 	count := len(events)
