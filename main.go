@@ -1,12 +1,14 @@
 package main
 
 import (
+	"code.cloudfoundry.org/clock"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/facebookgo/pidfile"
+	"github.com/voelzmo/pinger/graphite"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -19,12 +21,15 @@ import (
 type addressVar []string
 
 var (
-	config          *httpConfig = &httpConfig{}
-	interval        int
-	addressesToPing addressVar
-	errorRate       float64
-	randomGenerator *rand.Rand
-	pidFilePath     string
+	config           *httpConfig = &httpConfig{}
+	interval         int
+	addressesToPing  addressVar
+	listenPort       int
+	errorRate        float64
+	randomGenerator  *rand.Rand
+	pidFilePath      string
+	graphiteEndpoint string
+	metricsPrefix    string
 )
 
 type httpConfig struct {
@@ -88,7 +93,15 @@ func createClient() (*http.Client, error) {
 }
 
 func startHTTPServer() {
+	var pingMetric *graphite.Metric
+	if graphiteEndpoint != "" {
+		sender := graphite.NewGraphiteSender(graphiteEndpoint)
+		pingMetric = graphite.NewMetric(metricsPrefix, 10.0*time.Second, sender, clock.NewClock())
+	}
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		if pingMetric != nil {
+			pingMetric.Increment()
+		}
 		f := randomGenerator.Float64()
 		if f < errorRate {
 			http.Error(w, "no wai!", http.StatusTeapot)
@@ -117,6 +130,8 @@ func init() {
 	flag.StringVar(&config.certFile, "cert-path", "", "Path to certificate for https server")
 	flag.StringVar(&config.keyFile, "key-path", "", "Path to key for https server")
 	flag.StringVar(&config.caCertFile, "ca-cert-path", "", "Path to custom ca to trust")
+	flag.StringVar(&graphiteEndpoint, "graphite-endpoint", "", "Where to write metrics to, format is <host>:<port>")
+	flag.StringVar(&metricsPrefix, "metrics-prefix", "pinger", "Prefix for reporting metrics")
 
 	portFromEnv := os.Getenv("PORT")
 	defaultPort := 8080
