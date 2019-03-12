@@ -69,6 +69,8 @@ func main() {
 
 	pingClient := NewPingClient(serverConfig, addressesToPing)
 	go pingClient.Start()
+
+	select {}
 }
 
 func writePIDFile() {
