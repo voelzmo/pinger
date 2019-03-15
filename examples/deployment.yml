@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-ping-app
+spec:
+  selector:
+    matchLabels:
+      app: my-ping-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: my-ping-app
+    spec:
+      initContainers:
+        - name: generate-config
+          image: 
+          command:
+            - bash
+            - "-c"
+            - |
+              echo ""
+
+      containers:
+        - name: my-ping-app
+          image: voelzmo/pinger:2.0
+

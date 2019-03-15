@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // PingClient is a client that can be started
@@ -18,10 +20,12 @@ type PingClient interface {
 type pingClient struct {
 	addresses []string
 	client    *http.Client
+	interval  time.Duration
+	logger    *zap.SugaredLogger
 }
 
 func (pc *pingClient) Start() {
-	c := time.Tick(time.Duration(interval) * time.Second)
+	c := time.Tick(time.Duration(pc.interval) * time.Second)
 	for range c {
 		for _, address := range pc.addresses {
 			pc.pingAddress(address)
@@ -32,26 +36,32 @@ func (pc *pingClient) Start() {
 func (pc *pingClient) pingAddress(address string) {
 	response, err := pc.client.Get(address + "/ping")
 	if err != nil {
-		log.Printf("Couldn't ping %s: %s", address, err)
+		pc.logger.Infof("Couldn't ping %s: %s", address, err)
 	} else {
 		defer response.Body.Close()
 		var pingAnswer string
 		json.NewDecoder(response.Body).Decode(&pingAnswer)
-		log.Printf("Pinged %s, got response: %s, \"%s\"", address, response.Status, pingAnswer)
+		pc.logger.Infof("Pinged %s, got response: %s, \"%s\"", address, response.Status, pingAnswer)
 	}
 }
 
 // NewPingClient creates a new client for pinging PingServers
-func NewPingClient(serverConfig *HTTPConfig, addresses []string) PingClient {
+func NewPingClient(serverConfig *HTTPConfig, addresses []string, interval time.Duration) PingClient {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalf("can't initialize zap logger: %v", err)
+	}
+	sugar := logger.Sugar()
+
 	client := http.DefaultClient
 	if serverConfig.caCertFile != "" {
 		caCert, err := ioutil.ReadFile(serverConfig.caCertFile)
 		if err != nil {
-			log.Fatal(err)
+			sugar.Fatal(err)
 		}
 		caCertPool, err := x509.SystemCertPool()
 		if err != nil {
-			log.Fatal(err)
+			sugar.Fatal(err)
 		}
 		caCertPool.AppendCertsFromPEM(caCert)
 
@@ -62,5 +72,6 @@ func NewPingClient(serverConfig *HTTPConfig, addresses []string) PingClient {
 		transport := &http.Transport{TLSClientConfig: tlsConfig}
 		client = &http.Client{Transport: transport}
 	}
-	return &pingClient{addresses, client}
+
+	return &pingClient{addresses, client, interval, sugar}
 }
