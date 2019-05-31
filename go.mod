@@ -12,7 +12,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.3.1
 	go.uber.org/atomic v1.3.2 // indirect
-	go.uber.org/zap v1.0.0-rc.1
+	go.uber.org/zap v1.10.0
 	golang.org/x/net v0.0.0-20190108155000-395948e2f546 // indirect
 	golang.org/x/sys v0.0.0-20190108104531-7fbe1cd0fcc2 // indirect
 )
