@@ -1,7 +1,6 @@
 ---
 listenPort: 8080
 address: ["http://localhost:8080"]
-interval: 10
-error-rate: 0.0
+
 
 

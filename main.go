@@ -38,6 +38,7 @@ func init() {
 }
 
 func main() {
+	configureDefaults()
 	readConfiguration()
 
 	writePIDFile(viper.GetString("pidfile-path"))
@@ -57,6 +58,11 @@ func main() {
 	go pingClient.Start()
 
 	select {} // keep main running, as we only have gofuncs above
+}
+
+func configureDefaults() {
+	viper.SetDefault("error-rate", 0.0)
+	viper.SetDefault("interval", 10)
 }
 
 func readConfiguration() {

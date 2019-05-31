@@ -14,14 +14,26 @@ spec:
     spec:
       initContainers:
         - name: generate-config
-          image: 
+          image: ubuntu:18.04
           command:
             - bash
             - "-c"
             - |
-              echo ""
+              echo "---" > /mnt/config/pinger.yml
+              echo "listenPort=$((8080 + $ordinal))" >> /mnt/config/pinger.yml
+              echo "address=[\"http://localhost:8080\"]" >> /mnt/config/pinger.yml
+          volumeMounts:
+            - name: conf
+              mountPath: /mnt/config
 
       containers:
         - name: my-ping-app
-          image: voelzmo/pinger:2.0
+          image: voelzmo/pinger:2.1
+          args: ["-config-path", "/mnt/config/pinger.yml"]
+          volumeMounts:
+            - name: conf
+              mountPath: /mnt/config
+      volumes:
+        - name: conf
+          emptyDir: {}
 
