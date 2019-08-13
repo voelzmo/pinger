@@ -40,7 +40,10 @@ func (pc *pingClient) pingAddress(address string) {
 	} else {
 		defer response.Body.Close()
 		var pingAnswer string
-		json.NewDecoder(response.Body).Decode(&pingAnswer)
+		err := json.NewDecoder(response.Body).Decode(&pingAnswer)
+		if err != nil {
+			pc.logger.Errorf("error decoding json response: '%v'", err)
+		}
 		pc.logger.Infof("Pinged %s, got response: %s, \"%s\"", address, response.Status, pingAnswer)
 	}
 }

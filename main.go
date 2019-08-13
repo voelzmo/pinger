@@ -1,25 +1,16 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"log"
-	"time"
-
+	goflag "flag"
 	"github.com/facebookgo/pidfile"
+	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"log"
 )
 
 var (
 	configPath string
 )
-
-type config struct {
-	interval        time.Duration
-	addressesToPing []string
-	errorRate       float64
-	pidFilePath     string
-}
 
 // HTTPConfig contains necessary config parameters for a TLS or plain HTTP server
 type HTTPConfig struct {
@@ -35,16 +26,26 @@ func (c *HTTPConfig) isSecure() bool {
 
 func init() {
 	flag.StringVar(&configPath, "config-path", "", "Absolute path to read a config file from")
+	flag.StringSlice("address", []string{"http://localhost:8080"}, "Server address and port to ping from the client")
+	flag.Int("port", 8080, "Server port to listen on")
+	flag.Int("interval", 10, "Interval in seconds for clients calling '/ping'")
+	flag.Float64("error-rate", 0.0, "Server error-rate in percent. Server will respond with an error instead of a regular 'pong' answer")
 }
 
 func main() {
-	configureDefaults()
-	readConfiguration()
+	flag.CommandLine.AddGoFlagSet(goflag.CommandLine)
+	flag.Parse()
+	err := viper.BindPFlags(flag.CommandLine)
+	if err != nil {
+		log.Fatalf("fatal error during binding flags: '%v'", err)
+	}
+	viper.AutomaticEnv()
 
-	writePIDFile(viper.GetString("pidfile-path"))
+	readConfiguration()
+	writePIDFile(viper.GetString("pidfile"))
 
 	serverConfig := &HTTPConfig{
-		viper.GetInt("listenPort"),
+		viper.GetInt("port"),
 		viper.GetString("cert-path"),
 		viper.GetString("key-path"),
 		viper.GetString("ca-cert-path"),
@@ -60,18 +61,12 @@ func main() {
 	select {} // keep main running, as we only have gofuncs above
 }
 
-func configureDefaults() {
-	viper.SetDefault("error-rate", 0.0)
-	viper.SetDefault("interval", 10)
-}
-
 func readConfiguration() {
-	flag.Parse()
 	if configPath != "" {
 		viper.SetConfigFile(configPath)
 		err := viper.ReadInConfig()
 		if err != nil {
-			panic(fmt.Errorf("fatal error config file at '%s': %s", configPath, err))
+			log.Fatalf("fatal error config file at '%s': %s", configPath, err)
 		}
 	}
 }
@@ -81,16 +76,16 @@ func writePIDFile(path string) {
 		pidfile.SetPidfilePath(path)
 		err := pidfile.Write()
 		if err != nil {
-			log.Fatalf("Couldn't write Pidfile at path '%s': %s", path, err)
+			log.Fatalf("couldn't write Pidfile at path '%s': %s", path, err)
 		}
 	}
 }
 
 func verifyHTTPSConfig(sc *HTTPConfig) {
 	if sc.certFile != "" && sc.keyFile == "" {
-		log.Fatal("Specify either certificate and key or none")
+		log.Fatal("specify either certificate and key or none")
 	}
 	if sc.certFile == "" && sc.keyFile != "" {
-		log.Fatal("Specify either certificate and key or none")
+		log.Fatal("specify either certificate and key or none")
 	}
 }

@@ -46,7 +46,10 @@ func (ps *pingServer) Start() {
 			http.Error(w, "no wai!", http.StatusTeapot)
 			return
 		}
-		json.NewEncoder(w).Encode("pong")
+		err := json.NewEncoder(w).Encode("pong")
+		if err != nil {
+			ps.logger.Errorf("error encoding json response '%v'", err)
+		}
 		ps.logger.Infof("Got pinged by '%s', sent a 'pong'!", r.RemoteAddr)
 	})
 	log.Fatal(ps.listenAndServe())
