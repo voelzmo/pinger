@@ -2,10 +2,12 @@ package main
 
 import (
 	goflag "flag"
+	"io/ioutil"
+	"log"
+
 	"github.com/facebookgo/pidfile"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"log"
 )
 
 var (
@@ -68,6 +70,8 @@ func readConfiguration() {
 		if err != nil {
 			log.Fatalf("fatal error config file at '%s': %s", configPath, err)
 		}
+		content, _ := ioutil.ReadFile(configPath)
+		log.Printf("config file:'%s'\n", content)
 	}
 }
 

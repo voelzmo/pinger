@@ -6,8 +6,8 @@ spec:
   selector:
     matchLabels:
       app: my-ping-app
-  serviceName: "pinger"
-  replicas: 3
+  serviceName: pinger
+  replicas: 3 # this should match env.name=REPLICAS for the initContainer
   template:
     metadata:
       labels:
@@ -22,13 +22,29 @@ spec:
             - |
               echo "---" > /mnt/config/pinger.yml
               echo "port: 8080" >> /mnt/config/pinger.yml
-              echo "address: [\"http://pinger:8080\"]" >> /mnt/config/pinger.yml
+              arg=""
+              for (( i=0; i<${REPLICAS}; i++ ))
+              do
+                n="my-ping-app-${i}"
+                if [ "${n}" != "${NAME}" ]
+                then
+                  arg+="http://${n}.pinger:8080,"
+                fi
+              done
+              echo "address: [${arg}]" >> /mnt/config/pinger.yml
           volumeMounts:
             - name: conf
               mountPath: /mnt/config
+          env:
+            - name: REPLICAS
+              value: "3" # this should match spec.replicas
+            - name: NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
       containers:
         - name: my-ping-app
-          image: voelzmo/pinger:2.4
+          image: voelzmo/pinger:2.6
           args: ["--config-path", "/mnt/config/pinger.yml"]
           volumeMounts:
             - name: conf
