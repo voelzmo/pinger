@@ -39,7 +39,7 @@ func NewPingServer(serverConfig *HTTPConfig, errorRate float64) PingServer {
 }
 
 func (ps *pingServer) Start() {
-	ps.logger.Infow("starting ping server", "errorRate", ps.errorRate, "config", ps.config)
+	ps.logger.Infof("starting ping server with errorRate: '%v', config: '%#v'", ps.errorRate, ps.config)
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		f := ps.randomGenerator.Float64()
 		if f < ps.errorRate {
