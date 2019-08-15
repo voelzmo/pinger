@@ -26,7 +26,7 @@ spec:
               for (( i=0; i<${REPLICAS}; i++ ))
               do
                 n="my-ping-app-${i}"
-                if [ "${n}" != "${NAME}" ]
+                if [ "${n}" != "${HOSTNAME}" ]
                 then
                   arg+="http://${n}.pinger:8080,"
                 fi
@@ -38,10 +38,6 @@ spec:
           env:
             - name: REPLICAS
               value: "3" # this should match spec.replicas
-            - name: NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
       containers:
         - name: my-ping-app
           image: voelzmo/pinger:2.6
