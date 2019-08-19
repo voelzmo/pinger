@@ -1,12 +1,18 @@
-FROM golang:1-alpine as build-env
+FROM golang:1.12 as build-env
 
-WORKDIR /go/src/github.com/voelzmo/pinger
-ADD . .
+WORKDIR /workspace/pinger
 
-RUN GOOS=linux go build -tags netgo -o pinger
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY *.go ./
+RUN go mod vendor
+
+RUN GOOS=linux go build -mod vendor -tags netgo -o pinger
 
 FROM scratch
 
 WORKDIR /app
-COPY --from=build-env /go/src/github.com/voelzmo/pinger/pinger /app/
-ENTRYPOINT ["/app/pinger"]
+COPY --from=build-env /workspace/pinger/pinger /app/
+ENTRYPOINT ["/app/pinger", "--error-rate", "0.5"]
