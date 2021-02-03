@@ -1,0 +1,7 @@
+vendor/
+Dockerfile
+scripts/
+examples/
+.idea/
+.git/
+*_test.go

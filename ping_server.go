@@ -21,10 +21,11 @@ type pingServer struct {
 	randomGenerator *rand.Rand
 	errorRate       float64
 	logger          *zap.SugaredLogger
+	instanceid      string
 }
 
 // NewPingServer creates a new PingServer obviously.
-func NewPingServer(serverConfig *HTTPConfig, errorRate float64) PingServer {
+func NewPingServer(serverConfig *HTTPConfig, errorRate float64, instanceid string) PingServer {
 	logger, err := zap.NewDevelopment()
 	sugar := logger.Sugar()
 	if err != nil {
@@ -35,6 +36,7 @@ func NewPingServer(serverConfig *HTTPConfig, errorRate float64) PingServer {
 		randomGenerator: rand.New(rand.NewSource(time.Now().UnixNano())),
 		errorRate:       errorRate,
 		logger:          sugar,
+		instanceid:      instanceid,
 	}
 }
 
@@ -46,7 +48,7 @@ func (ps *pingServer) Start() {
 			http.Error(w, "no wai!", http.StatusTeapot)
 			return
 		}
-		err := json.NewEncoder(w).Encode("pong")
+		err := json.NewEncoder(w).Encode(fmt.Sprintf("pongpong from '%s'", ps.instanceid))
 		if err != nil {
 			ps.logger.Errorf("error encoding json response '%v'", err)
 		}

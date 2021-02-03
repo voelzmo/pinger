@@ -54,7 +54,7 @@ func main() {
 	}
 	verifyHTTPSConfig(serverConfig)
 
-	pingServer := NewPingServer(serverConfig, viper.GetFloat64("error-rate"))
+	pingServer := NewPingServer(serverConfig, viper.GetFloat64("error-rate"), viper.GetString("CF_INSTANCE_GUID"))
 	go pingServer.Start()
 
 	pingClient := NewPingClient(serverConfig, viper.GetStringSlice("address"), viper.GetDuration("interval"))

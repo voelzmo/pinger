@@ -5,6 +5,10 @@ Just an app that pings regularly pings other IP adresses. Responds to pings on `
 
 ### Consumption
 * boshrelease: https://github.com/voelzmo/pinger-app-release
+* deploy ping-app on Cloud Foundry with the golang buildpack
+```
+cf push ping-app
+```
 * deploy ping-app on Cloud Foundry with the binary buildpack
 ```
 GOOS=linux GOARCH=amd64 go build -o ping-app
