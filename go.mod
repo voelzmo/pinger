@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/facebookgo/pidfile v0.0.0-20150612191647-f242e2999868
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.27.9
+	github.com/onsi/gomega v1.27.10
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	go.uber.org/zap v1.24.0
