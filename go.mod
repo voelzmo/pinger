@@ -8,7 +8,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.36.3
 	github.com/spf13/pflag v1.0.6
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	go.uber.org/zap v1.27.0
 )
 
