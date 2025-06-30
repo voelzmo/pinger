@@ -1,12 +1,13 @@
 module github.com/voelzmo/pinger
 
-go 1.19
+go 1.23.0
+
 toolchain go1.24.1
 
 require (
 	github.com/facebookgo/pidfile v0.0.0-20150612191647-f242e2999868
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.36.3
+	github.com/onsi/gomega v1.37.0
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.20.1
 	go.uber.org/zap v1.27.0
