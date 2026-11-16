@@ -1,4 +1,4 @@
-FROM golang:1.27.1 as build-env
+FROM golang:1.27.4 as build-env
 
 WORKDIR /workspace/pinger
 
